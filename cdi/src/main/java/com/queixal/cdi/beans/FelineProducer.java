@@ -5,6 +5,15 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+/**
+ * FACTORY PATTERN
+ * 
+ * In order to generate a concrete feline we have a couple of implementations for that interface.
+ * Those implementations have subtype qualifier.
+ * We are using @Any Instance<Feline> in order tor etrieve all the implementations for Feline but without init them
+ * Later on, when the producer is called, we are looking at the configuration in order to retrieve one of the implementations
+ * 
+ */
 public class FelineProducer {
     
     @Inject

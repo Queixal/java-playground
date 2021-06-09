@@ -55,7 +55,10 @@ class AppTest {
     @Inject
     private ProducerConfig config;
 
-    @Test void testProducer() {
+    /**
+     * Testing producers with qualifiers and amiguous definition using a factory pattern
+     */
+    @Test void testProducerFactory() {
         assertNotNull(amiguousFeline);
         config.setTypeToUse("cat");
         assertTrue(feline.get() instanceof Cat);
