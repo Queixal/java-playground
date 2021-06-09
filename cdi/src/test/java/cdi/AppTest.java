@@ -3,12 +3,66 @@
  */
 package cdi;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.CDI;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.queixal.cdi.beans.Cat;
+import com.queixal.cdi.beans.Feline;
+import com.queixal.cdi.beans.Panther;
+import com.queixal.cdi.beans.ProducerConfig;
+
+import org.jboss.weld.junit5.EnableWeld;
+import org.jboss.weld.junit5.WeldInitiator;
+import org.jboss.weld.junit5.WeldSetup;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@EnableWeld
+@TestMethodOrder(OrderAnnotation.class)
+@TestInstance(Lifecycle.PER_CLASS)
 class AppTest {
-    @Test void appHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    
+    private static final Logger log = LoggerFactory.getLogger(AppTest.class);
+
+	@WeldSetup
+	public WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld().disableIsolation().enableDiscovery()
+			.addPackages(true, Feline.class));
+
+    @Inject
+    @Named("cat")
+    private Feline cat;
+
+    @Inject
+    @Named("panther")
+    private Feline panther;
+
+    @Inject
+    private Instance<Feline> feline;
+
+    @Inject
+    private Feline amiguousFeline;
+
+    @Inject
+    private ProducerConfig config;
+
+    @Test void testProducer() {
+        assertNotNull(amiguousFeline);
+        config.setTypeToUse("cat");
+        assertTrue(feline.get() instanceof Cat);
+        config.setTypeToUse("panther");
+        assertTrue(feline.get() instanceof Panther);
+        //check Injected methods
+        assertTrue(cat instanceof Cat);
+        assertTrue(panther instanceof Panther);
     }
 }
