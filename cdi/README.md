@@ -2,7 +2,7 @@
 
 Playground project for testing different things about cdi features
 
-## Comenzando 🚀
+## Getting started 🚀
 
 This project is junit based at this moment so no deployment is needed
 
