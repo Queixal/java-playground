@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch App",
+            "request": "launch",
+            "mainClass": "cdi.App",
+            "projectName": "cdi"
+        },
+        {
+            "type": "java",
+            "request": "attach",
+            "hostName": "localhost",
+            "name": "payara-micro",
+            "port": 5005
+        }
+    ]
+}
