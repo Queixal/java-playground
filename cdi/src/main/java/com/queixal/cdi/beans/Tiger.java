@@ -1,7 +1,9 @@
 package com.queixal.cdi.beans;
 
-@FelineType("cat")
-public class Cat implements Feline {
+import javax.inject.Named;
+
+@FelineType("tiger")
+public class Tiger implements Feline {
 
     @Override
     public void scratch() {
@@ -11,7 +13,7 @@ public class Cat implements Feline {
 
     @Override
     public void walk() {
-        System.out.println("walking like a cat");
+        System.out.println("walking like a tiger");
     }
 
     @Override

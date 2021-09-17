@@ -1,8 +1,5 @@
 package com.queixal.cdi.beans;
 
-import javax.inject.Named;
-
-@Named("panther")
 @FelineType("panther")
 public class Panther implements Feline {
 
