@@ -6,11 +6,20 @@ package com.queixal.ssl;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.BodySubscribers;
+import java.net.http.HttpResponse.ResponseInfo;
+import java.nio.charset.Charset;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HostnameVerifier;
@@ -48,8 +57,57 @@ class SSLPlaygroundTest {
         con.disconnect();
     }
 
+    @Test
+    void testUsingJkd11HTTPClient() throws Exception {
+        var defaultSSLVerifier = HttpsURLConnection.getDefaultSSLSocketFactory();
+        var defaultHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+
+        var props = System.getProperties();
+        props.setProperty("jdk.internal.httpclient.disableHostnameVerification", "true");
+        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] { new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+            }
+        } }, new java.security.SecureRandom());
+
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+
+        // // Set SSL parameters
+        HttpClient httpClient = HttpClient.newBuilder().sslContext(sslContext)
+        //.sslParameters(parameters)
+        .build();
+        var request = HttpRequest.newBuilder().uri(URI.create(httpsURL))
+        .POST(BodyPublishers.ofString("")).build();
+
+
+        httpClient.send(request, new BodyHandler<String>() {
+            @Override
+            public BodySubscriber<String> apply(ResponseInfo responseInfo) {
+                BodySubscriber<String> upstream = BodySubscribers.ofString(Charset.defaultCharset());
+                return BodySubscribers.mapping(upstream, (string) -> string);
+            }
+        });
+
+        assertTrue(true);
+        HttpsURLConnection.setDefaultSSLSocketFactory(defaultSSLVerifier);
+        HttpsURLConnection.setDefaultHostnameVerifier(defaultHostnameVerifier);
+        props.setProperty("jdk.internal.httpclient.disableHostnameVerification", "false");
+    }
+
     /**
-     * Send an HTTPS request but removing java default truststore and hostname validation
+     * Send an HTTPS request but removing java default truststore and hostname
+     * validation
+     * 
      * @throws Exception
      */
     @Test
@@ -67,10 +125,10 @@ class SSLPlaygroundTest {
             }
         });
 
-        var httpsURL = "https://localhost/";
+        var httpsURL = "https://localhost:443/";
         URL url = new URL(httpsURL);
         HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
+        con.setRequestMethod("POST");
 
         // read response
         try (var in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
